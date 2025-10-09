@@ -36,9 +36,9 @@ icto_canyon_long = icto %>%
     pivot_longer(cols = 4:22, 
                names_to = "Year", 
                values_to = "Adults")
-
+# Generate table with counts by canyon/transect
 icto_canyon_sum_wide = icto_canyon_long %>% group_by(Canyon, Year) %>%
-    summarise(Adults_canyon_sum = sum(Adults)) %>%
+    summarise(Adults_canyon_sum = sum(Adults, na.rm = T)) %>%
     pivot_wider(values_from = Adults_canyon_sum,
                 names_from = Year)
 
@@ -50,7 +50,7 @@ icto_sites_long = icto %>%
                names_to = "Year", 
                values_to = "Adults")
 
-names(icto_sites_long)
+# names(icto_sites_long)
 
 # For a future regression we could, for example, do a regression model 
 # to look at effect of year and elevation seperately. Eventually, 
