@@ -19,6 +19,7 @@ library(readr)
 library(readxl)
 
 # For_analysis_ICTO_Results_Spreadsheet_2024_Sites_only_Adults_x_Site_Year <- read_csv("C:/Users/PatrickLorch/SSRS/Weldon Field Projects - Documents/PROJECTS/2024 Inyo Cal Towhees/Data/For analysis-ICTO Results Spreadsheet -2024 Sites only_Adults x Site-Year.csv")
+
 ICTO_Trends_20251008 = read_excel("C:/Users/PatrickLorch/SSRS/Weldon Field Projects - Documents/Projects/Inyo California Towhees 2025/Data/ICTO Trends/2025/ICTO Trends_20251008.xlsx", sheet = "Working")
 
 # Fix canyon name
