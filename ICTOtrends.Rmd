@@ -1,0 +1,80 @@
+---
+title: "ICTOtrends"
+author: "Patrick D. lorch"
+date: "2024-09-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data import
+
+
+```{r data}
+library(dplyr)
+library(tidyr)
+library(readr)
+library(readxl)
+
+# For_analysis_ICTO_Results_Spreadsheet_2024_Sites_only_Adults_x_Site_Year <- read_csv("C:/Users/PatrickLorch/SSRS/Weldon Field Projects - Documents/PROJECTS/2024 Inyo Cal Towhees/Data/For analysis-ICTO Results Spreadsheet -2024 Sites only_Adults x Site-Year.csv")
+ICTO_Trends_20251008 = read_excel("C:/Users/PatrickLorch/SSRS/Weldon Field Projects - Documents/Projects/Inyo California Towhees 2025/Data/ICTO Trends/2025/ICTO Trends_20251008.xlsx", sheet = "Working")
+
+# Fix canyon name
+ICTO_Trends_20251008$Canyon[209:213] = ICTO_Trends_20251008$Canyon[214]
+
+names(ICTO_Trends_20251008)
+
+# Get rid of totals and blank lines
+icto = ICTO_Trends_20251008 %>%
+  filter(!is.na(Site)) %>%
+  select(!contains("..."))
+
+icto_canyon_sum = icto %>%
+    pivot_longer(cols = 4:22, 
+               names_to = "Year", 
+               values_to = "Adults") %>%
+  group_by(Canyon, Year) %>%
+    summarise(Adults_canyon_sum = sum(Adults)) %>%
+    pivot_wider(values_from = Adults_canyon_sum,
+                names_from = Year)
+
+write.csv(icto_canyon_sum, "icto_canyon_sum.csv", row.names = F)
+
+icto_sites_long = icto %>%
+  select(!("pre-1998")) %>%
+  pivot_longer(cols = 4:21, 
+               names_to = "Year", 
+               values_to = "Adults")
+
+names(icto_sites_long)
+
+# For a future regression we could, for example, do a regression model 
+# to look at effect of year and elevation seperately. Eventually, 
+# slope and aspect could included.
+```
+
+## Regression by site
+
+
+```{r regressions}
+library(dplyr)
+library(tidyr)
+library(broom)
+
+dfYearCoeff = icto_sites_long %>%
+  nest_by(Canyon, Site) %>%
+  mutate(fitYear = list(lm(Adults ~ as.numeric(Year), data = data))) %>%
+  reframe(tidy(fitYear))
+
+# Get just the coefficients
+dfYearCoeff.only = dfYearCoeff %>%
+  filter(term != "(Intercept)") %>%
+  select(!c("term"))
+
+write.csv(dfYearCoeff.only, "ICTOtrendRegressions2025.csv", row.names = F)
+```
+
+## 
+
