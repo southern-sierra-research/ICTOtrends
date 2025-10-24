@@ -20,24 +20,28 @@ library(readxl)
 
 # For_analysis_ICTO_Results_Spreadsheet_2024_Sites_only_Adults_x_Site_Year <- read_csv("C:/Users/PatrickLorch/SSRS/Weldon Field Projects - Documents/PROJECTS/2024 Inyo Cal Towhees/Data/For analysis-ICTO Results Spreadsheet -2024 Sites only_Adults x Site-Year.csv")
 
-ICTO_Trends_20251008 = read_excel("C:/Users/PatrickLorch/SSRS/Weldon Field Projects - Documents/Projects/Inyo California Towhees 2025/Data/ICTO Trends/2025/ICTO Trends_20251008.xlsx", sheet = "Working")
-
+# ICTO_Trends_20251008 = read_excel("C:/Users/PatrickLorch/SSRS/Weldon Field Projects - Documents/Projects/Inyo California Towhees 2025/Data/ICTO Trends/2025/ICTO Trends_20251008.xlsx", sheet = "Working")
+ICTO_Trends_20251008 = read.csv("C:/Users/PatrickLorch/SSRS/Weldon Field Projects - Documents/Projects/Inyo California Towhees 2025/Data/ICTO Trends/2025/trends_allyears_latlong.csv")
 # Fix canyon name
 # ICTO_Trends_20251008$Canyon[209:213] = ICTO_Trends_20251008$Canyon[214]
 
 names(ICTO_Trends_20251008)
 
-# Get rid of totals and blank lines
 icto = ICTO_Trends_20251008 %>%
-  filter(!is.na(Site)) %>%
-  select(!contains("..."))
+  select(!("X"))
+names(icto)[4:19] = c("1998", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2014", "2015", "2016", "2019", "2021", "2022", "2024", "2025")
+
+# Get rid of totals and blank lines
+# icto = ICTO_Trends_20251008 %>%
+#   filter(!is.na(Site)) %>%
+#   select(!contains("..."))
 
 icto_canyon_long = icto %>%
-    pivot_longer(cols = 4:22, 
+    pivot_longer(cols = 3:19, 
                names_to = "Year", 
                values_to = "Adults")
 # Generate table with counts by canyon/transect
-icto_canyon_sum_wide = icto_canyon_long %>% group_by(Canyon, Year) %>%
+icto_canyon_sum_wide = icto_canyon_long %>% group_by(canyon, Year) %>%
     summarise(Adults_canyon_sum = sum(Adults, na.rm = T)) %>%
     pivot_wider(values_from = Adults_canyon_sum,
                 names_from = Year)
@@ -45,8 +49,8 @@ icto_canyon_sum_wide = icto_canyon_long %>% group_by(Canyon, Year) %>%
 write.csv(icto_canyon_sum_wide, "icto_canyon_sum_wide.csv", row.names = F)
 
 icto_sites_long = icto %>%
-  select(!("pre-1998")) %>%
-  pivot_longer(cols = 4:21, 
+  select(!("pre.1998")) %>%
+  pivot_longer(cols = 3:18, 
                names_to = "Year", 
                values_to = "Adults")
 
@@ -66,14 +70,18 @@ library(tidyr)
 library(broom)
 
 dfYearCoeff = icto_sites_long %>%
-  nest_by(Canyon, Site) %>%
+  nest_by(canyon, site) %>%
   mutate(fitYear = list(lm(Adults ~ as.numeric(Year), data = data))) %>%
   reframe(tidy(fitYear))
-
+icto_site_data = icto %>%
+  select(canyon, site, lat, long, elevation)
+  
 # Get just the coefficients
 dfYearCoeff.only = dfYearCoeff %>%
   filter(term != "(Intercept)") %>%
-  select(!c("term"))
+  select(!c("term")) %>%
+  left_join(icto_site_data, by = c("canyon", "site"))
+
 
 write.csv(dfYearCoeff.only, "ICTOtrendRegressions2025.csv", row.names = F)
 ```
